@@ -2,8 +2,7 @@
 name: Wheel Builds
 on:
   push:
-    tags:
-      - '*'
+    branches: ["dnm-retrigger-s390x-split"]
 jobs:
   build_wheels_s390x:
     name: Build wheels on s390x
@@ -30,6 +29,7 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: s390x
           CIBW_TEST_SKIP: "cp*"
+          CIBW_BUILD: "cp37-manylinux* cp38-manylinux*"
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
@@ -40,8 +40,8 @@ jobs:
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
           TWINE_USERNAME: qiskit
-  build_wheels_ppc64le:
-    name: Build wheels on ppc64le
+  build_wheels_s390x_part2:
+    name: Build wheels on s390x
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -63,42 +63,9 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.3.1
         env:
-          CIBW_ARCHS_LINUX: ppc64le
+          CIBW_ARCHS_LINUX: s390x
           CIBW_TEST_SKIP: "cp*"
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
-      - name: Install twine
-        run: python -m pip install twine
-      - name: Upload to PyPI
-        run: twine upload ./wheelhouse/*.whl
-        env:
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-          TWINE_USERNAME: qiskit
-  build_wheels_aarch64:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        name: Install Python
-        with:
-          python-version: '3.7'
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
-        env:
-          CIBW_ARCHS_LINUX: aarch64
+          CIBW_BUILD: "cp39-manylinux* cp310-manylinux*"
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
