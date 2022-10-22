@@ -192,7 +192,7 @@ class PauliList(BasePauli, LinearMixin, GroupMixin):
 
     def _truncated_str(self, show_class):
         stop = self._num_paulis
-        if self.__truncate__:
+        if self.__truncate__ and self.num_qubits > 0:
             max_paulis = self.__truncate__ // self.num_qubits
             if self._num_paulis > max_paulis:
                 stop = max_paulis
@@ -237,12 +237,12 @@ class PauliList(BasePauli, LinearMixin, GroupMixin):
     def phase(self):
         """Return the phase exponent of the PauliList."""
         # Convert internal ZX-phase convention to group phase convention
-        return np.mod(self._phase - self._count_y(), 4)
+        return np.mod(self._phase - self._count_y(dtype=self._phase.dtype), 4)
 
     @phase.setter
     def phase(self, value):
         # Convert group phase convetion to internal ZX-phase convention
-        self._phase[:] = np.mod(value + self._count_y(), 4)
+        self._phase[:] = np.mod(value + self._count_y(dtype=self._phase.dtype), 4)
 
     @property
     def x(self):
@@ -1088,13 +1088,17 @@ class PauliList(BasePauli, LinearMixin, GroupMixin):
             dtype=np.int8,
         )
         mat2 = mat1[:, None]
-        qubit_commutation_mat = (mat1 * mat2) * (mat1 - mat2)
-        # adjacency_mat[i, j] is True if an edge (i, j) is present, i.e. i and j are non-commuting
+        # This is 0 (false-y) iff one of the operators is the identity and/or both operators are the
+        # same.  In other cases, it is non-zero (truth-y).
+        qubit_anticommutation_mat = (mat1 * mat2) * (mat1 - mat2)
+        # 'adjacency_mat[i, j]' is True iff Paulis 'i' and 'j' do not commute in the given strategy.
         if qubit_wise:
-            adjacency_mat = np.logical_or.reduce(qubit_commutation_mat, axis=2)
+            adjacency_mat = np.logical_or.reduce(qubit_anticommutation_mat, axis=2)
         else:
-            adjacency_mat = np.logical_xor.reduce(qubit_commutation_mat, axis=2)
-        # convert into list where tuple elements are non-commuting operators
+            # Don't commute if there's an odd number of element-wise anti-commutations.
+            adjacency_mat = np.logical_xor.reduce(qubit_anticommutation_mat, axis=2)
+        # Convert into list where tuple elements are non-commuting operators.  We only want to
+        # results from one triangle to avoid symmetric duplications.
         return list(zip(*np.where(np.triu(adjacency_mat, k=1))))
 
     def _create_graph(self, qubit_wise):
@@ -1131,6 +1135,7 @@ class PauliList(BasePauli, LinearMixin, GroupMixin):
 
                 .. code-block:: python
 
+                    >>> from qiskit.quantum_info import PauliList
                     >>> op = PauliList(["XX", "YY", "IZ", "ZZ"])
                     >>> op.group_commuting()
                     [PauliList(['XX', 'YY']), PauliList(['IZ', 'ZZ'])]

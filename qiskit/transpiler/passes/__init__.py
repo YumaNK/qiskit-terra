@@ -46,7 +46,6 @@ Routing
    StochasticSwap
    SabreSwap
    BIPMapping
-   SwapStrategy
    Commuting2qGateRouter
 
 Basis Change
@@ -78,6 +77,7 @@ Optimizations
    InverseCancellation
    CommutationAnalysis
    CommutativeCancellation
+   CommutativeInverseCancellation
    Optimize1qGatesSimpleCommutation
    RemoveDiagonalGatesBeforeMeasure
    RemoveResetInZeroState
@@ -85,6 +85,8 @@ Optimizations
    HoareOptimizer
    TemplateOptimization
    EchoRZXWeylDecomposition
+   ResetAfterMeasureSimplification
+   OptimizeCliffords
 
 Calibration
 =============
@@ -139,6 +141,7 @@ Synthesis
    UnitarySynthesis
    LinearFunctionsSynthesis
    LinearFunctionsToPermutations
+   HighLevelSynthesis
 
 Post Layout (Post transpile qubit selection)
 ============================================
@@ -167,6 +170,7 @@ Additional Passes
    FixedPoint
    ContainsInstruction
    GatesInBasis
+   ConvertConditionsToIfOps
 """
 
 # layout selection (placement)
@@ -190,7 +194,6 @@ from .routing import LookaheadSwap
 from .routing import StochasticSwap
 from .routing import SabreSwap
 from .routing import BIPMapping
-from .routing import SwapStrategy
 from .routing import Commuting2qGateRouter
 
 # basis change
@@ -209,6 +212,7 @@ from .optimization import CollectMultiQBlocks
 from .optimization import ConsolidateBlocks
 from .optimization import CommutationAnalysis
 from .optimization import CommutativeCancellation
+from .optimization import CommutativeInverseCancellation
 from .optimization import CXCancellation
 from .optimization import Optimize1qGatesSimpleCommutation
 from .optimization import OptimizeSwapBeforeMeasure
@@ -220,6 +224,8 @@ from .optimization import TemplateOptimization
 from .optimization import InverseCancellation
 from .optimization import EchoRZXWeylDecomposition
 from .optimization import CollectLinearFunctions
+from .optimization import ResetAfterMeasureSimplification
+from .optimization import OptimizeCliffords
 
 # circuit analysis
 from .analysis import ResourceEstimation
@@ -236,6 +242,7 @@ from .synthesis import UnitarySynthesis
 from .synthesis import unitary_synthesis_plugin_names
 from .synthesis import LinearFunctionsSynthesis
 from .synthesis import LinearFunctionsToPermutations
+from .synthesis import HighLevelSynthesis
 
 # calibration
 from .calibration import PulseGates
@@ -272,3 +279,4 @@ from .utils import Error
 from .utils import RemoveBarriers
 from .utils import ContainsInstruction
 from .utils import GatesInBasis
+from .utils import ConvertConditionsToIfOps
